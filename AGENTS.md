@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Overview
-Omni-Link is a Universal Semantic Intelligence Bridge MCP (Model Context Protocol) server that acts as a proactive semantic intelligence layer for AI agents. It provides a "Spider-Sense" capability to understand code architecture before making changes.
+Omni-Link is a Universal Semantic Intelligence Bridge MCP server that acts as a **Precision Layer** for AI agents. It provides a "Spider-Sense" capability to understand code architecture and synthesize **Minimum Viable Context (MVC)** before making changes.
 
 ## Architecture & Data Flow
 The system follows a three-layer architecture:
@@ -9,7 +9,7 @@ The system follows a three-layer architecture:
 - **Layer B (Compression)**: Filters and prioritizes structural symbols over implementation details using semantic compression.
 - **Layer C (Interface)**: Exposes simplified MCP tools for rapid consumption by AI agents.
 
-Data flows from MCP tool requests → SemanticOrchestrator (routes by extension) → Symbol retrieval (Serena or ast-grep) → SemanticCompressor → MCP response.
+Data flows from MCP tool requests → SemanticOrchestrator (routes by engine efficiency) → Symbol retrieval (Serena or ast-grep) → **SemanticDistiller** (filters for task relevance) → MCP response.
 
 ## Key Directories
 - `src/`: Main source code

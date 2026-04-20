@@ -1,7 +1,7 @@
 # MASTER-SPEC-PROTOCOL: Omni-Link Universal Bridge
 
 ## 1. Visión y Objetivo
-Estandarizar la **Inteligencia Semántica Proactiva** para agentes de IA. Omni-Link actúa como un orquestador que comprime el AST y las dependencias del código en un flujo de tokens de alta densidad, permitiendo a los agentes "ver" el impacto de sus cambios antes de ejecutarlos.
+Estandarizar la **Capa de Precisión Semántica** para agentes de IA. Omni-Link actúa como un orquestador que destila el AST y las dependencias en un **Contexto Mínimo Viable (MVC)**, permitiendo que incluso modelos con ventanas pequeñas operen con la precisión de un Senior.
 
 ### Core Principles
 | Principio | Aplicación en Omni-Link |
@@ -56,10 +56,10 @@ Estandarizar la **Inteligencia Semántica Proactiva** para agentes de IA. Omni-L
 *   [x] **ast-grep Integration**: Motor de alto rendimiento para Python, Go y Rust.
 *   [x] **Detailed Health**: Reporte de estado por cada motor independiente.
 
-### Fase 4: CPSI & Expert Intel (ACTIVA)
-*   [ ] **Global Search Optimization**: Índices para búsquedas cross-project instantáneas.
-*   [ ] **Rule Library**: Catálogo de reglas expertas para stacks comunes (React, Node, Go).
-*   [ ] **Diff Compression**: Representación minimalista de cambios sugeridos.
+### Fase 4: Contexto Quirúrgico (ACTIVA)
+*   [ ] **MVC Engine**: Extracción dinámica de mapas semánticos basados en la intención de la tarea.
+*   [ ] **Semantic Breadcrumbs**: Trazabilidad de flujos de datos y llamadas entre archivos.
+*   [ ] **Adaptive Compression**: Resumen de lógica funcional (qué hace) vs. código crudo (cómo lo hace).
 
 ---
 ## 5. Reglas de Ingeniería (AI Mandatory Instructions)

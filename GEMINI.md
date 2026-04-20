@@ -4,9 +4,9 @@
 
 ## 🚀 Project Overview
 
-- **Purpose:** Provide high-fidelity semantic context to AI agents using compression and dependency analysis.
-- **Core Technology:** Built with TypeScript, leveraging the `@modelcontextprotocol/sdk` and `Serena MCP` as the underlying semantic engine.
-- **Engine:** Uses `uvx` to dynamically pull and run the Serena semantic provider.
+- **Purpose:** Provide high-precision semantic context to AI agents using the **MVC (Minimum Viable Context)** philosophy.
+- **Core Technology:** Built with TypeScript, orchestrating `Serena MCP` and `ast-grep` for universal precision.
+- **Focus:** Maximizing SNR (Signal-to-Noise Ratio) to make any agent efficient and accurate.
 
 ## 🏗️ Architecture
 

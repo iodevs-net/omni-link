@@ -5,7 +5,7 @@
 [![Parser: ast-grep](https://img.shields.io/badge/Parser-ast--grep-red)](https://ast-grep.github.io/)
 [![Stack: TypeScript](https://img.shields.io/badge/Stack-TypeScript-blue)](https://www.typescriptlang.org/)
 
-**Omni-Link** is a high-performance MCP (Model Context Protocol) server designed to provide AI agents with a proactive "Spider-Sense" regarding codebase architecture. It acts as an orchestration layer that understands symbols, dependencies, and structural impact across multiple languages and projects without saturating the token window.
+**Omni-Link** is the **Precision Layer** for AI coding agents. It acts as a standardized semantic bridge that provides high-fidelity architectural context while minimizing context noise. By orchestrating multiple semantic engines, Omni-Link ensures that even the most constrained LLMs operate with senior-level structural awareness.
 
 ---
 
@@ -13,10 +13,10 @@
 
 Omni-Link solves the "Context Overload" problem by replacing raw code dumps with **High-Density Semantic Advisories**.
 
-- **Multi-Engine Orchestration:** Automatically routes requests to specialized engines (Serena for TS/JS, ast-grep for Python/Go/Rust and directory analysis).
-- **Cross-Project Semantic Intelligence (CPSI):** Detects breaking changes and logic reuse across your entire workspace.
-- **Semantic Compression:** Distills complex AST data into concise, agent-optimized contexts (~500 tokens).
-- **Hardware-Safe:** Optimized for local development with minimal I/O and SSD-safe caching strategies.
+- **MVC (Minimum Viable Context):** Replaces raw code dumps with task-specific semantic maps.
+- **Precision Orchestration:** Dynamically routes queries to the best engine (Serena, ast-grep, or LSP) for the job.
+- **Cross-Project Intelligence (CPSI):** Detects breaking changes across your entire dev workspace.
+- **Agent Synergy:** Designed to enhance power-tools like `oh-my-pi`, `Antigravity`, and `Claude Code`.
 
 ---
 
