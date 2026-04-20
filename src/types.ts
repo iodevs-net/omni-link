@@ -21,5 +21,14 @@ export interface ISemanticProvider {
     error: string | null; 
     cacheEntries: number;
     timestamp: string;
+    [key: string]: any;
   }>;
+
+  // Fase V: Expert Intelligence
+  getExpertRules?(path: string): Promise<any[]>;
+  suggestFixes?(path: string, rulesPath?: string): Promise<{
+    ruleId: string;
+    message: string;
+    diff: string;
+  }[]>;
 }

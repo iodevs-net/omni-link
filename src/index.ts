@@ -67,6 +67,14 @@ class OmniLinkServer {
           })),
         },
         {
+          name: "check_expert_rules",
+          description: "SENTINEL: Verifica el archivo contra reglas expertas del proyecto (multi-tenant, gotchas, naming) y sugiere arreglos.",
+          inputSchema: zodToJsonSchema(z.object({
+            path: z.string().min(1).describe("Ruta del archivo a verificar"),
+            rules_path: z.string().optional().describe("Opcional: Ruta al archivo de reglas YAML personalizado"),
+          })),
+        },
+        {
           name: "get_health",
           description: "Verifica el estado de los proveedores de inteligencia semántica (Serena, etc.)",
           inputSchema: zodToJsonSchema(z.object({})),
@@ -132,6 +140,48 @@ class OmniLinkServer {
             for (const project of projects) {
               report += `\n### 📦 Proyecto: ${project}\n`;
               report += impact[project].map(f => `- ${f}`).join("\n") + "\n";
+            }
+
+            return {
+              content: [{
+                type: "text",
+                text: report
+              }]
+            };
+          }
+
+          case "check_expert_rules": {
+            const { path, rules_path } = args as { path: string, rules_path?: string };
+            if (!this.provider.suggestFixes) {
+              return { content: [{ type: "text", text: "❌ El proveedor actual no soporta Reglas Expertas." }], isError: true };
+            }
+
+            const findings = await this.provider.suggestFixes(path, rules_path);
+            
+            if (findings.length === 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: "✅ No se detectaron violaciones de reglas expertas en este archivo."
+                }]
+              };
+            }
+
+            let report = `### 🛡️ SEMANTIC_SENTINEL_ADVISORY\nSe han detectado ${findings.length} violaciones de reglas expertas en este archivo.\n\n`;
+            for (const f of findings) {
+              const severityEmoji = f.severity === "error" ? "🚨" : "⚠️";
+              report += `#### ${severityEmoji} [${f.ruleId}] ${f.message}\n`;
+              report += `> **Ubicación:** Línea ${f.range.start.line + 1}, Columna ${f.range.start.column + 1}\n`;
+              
+              if (f.replacement !== null) {
+                report += `\n💡 **Sugerencia de Refactorización:**\n`;
+                if (f.replacement === "") {
+                  report += `*Se sugiere eliminar este bloque de código.*\n`;
+                } else {
+                  report += `\`\`\`${f.language}\n${f.replacement}\n\`\`\`\n`;
+                }
+              }
+              report += `\n---\n`;
             }
 
             return {

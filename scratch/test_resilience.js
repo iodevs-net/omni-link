@@ -26,26 +26,24 @@ child.stderr.on("data", (data) => {
   console.error("[Stderr]", data.toString());
 });
 
-console.log("--- STARTING ORCHESTRATION TESTS ---");
+console.log("--- STARTING RESILIENCE TESTS ---");
 
-// Test 1: Health (Should show both engines)
+// Test 1: Health Check
 setTimeout(() => {
-  console.log("\n[Test 1] Multi-Engine Health Check...");
+  console.log("\n[Test 1] Health Check...");
   sendRequest("tools/call", { name: "get_health", arguments: {} }, 1);
 }, 1000);
 
-// Test 2: TypeScript (Should use Serena)
+// Test 2: Path Sanitization
 setTimeout(() => {
-  console.log("\n[Test 2] Routing to Serena (src/index.ts)...");
-  sendRequest("tools/call", { name: "get_spider_sense", arguments: { path: "src/index.ts" } }, 2);
+  console.log("\n[Test 2] Path Sanitization (//src//index.ts)...");
+  sendRequest("tools/call", { name: "get_spider_sense", arguments: { path: "//src//index.ts" } }, 2);
 }, 3000);
 
-// Test 3: Python (Should use ast-grep)
+// Test 3: Analyze Impact (Robust Extraction)
 setTimeout(() => {
-  console.log("\n[Test 3] Routing to ast-grep (test.py)...");
-  // Creamos un archivo python temporal para probar
-  spawn("sh", ["-c", "echo 'def hello():\n  print(\"world\")' > scratch/test.py"]);
-  sendRequest("tools/call", { name: "get_spider_sense", arguments: { path: "scratch/test.py" } }, 3);
+  console.log("\n[Test 3] Analyze Impact (OmniLinkServer)...");
+  sendRequest("tools/call", { name: "analyze_impact", arguments: { symbol_name: "OmniLinkServer", path: "src/index.ts" } }, 3);
 }, 6000);
 
 setTimeout(() => {

@@ -91,7 +91,7 @@ export class SerenaClient implements ISemanticProvider {
     
     if (!this.isConnected) {
       const ok = await this.connect();
-      if (!ok) return "[Omni-Link] Serena no disponible.";
+      if (!ok) return "🔴 [Omni-Link] Serena no disponible.";
     }
 
     const cached = this.cache.get(cleanPath);
@@ -107,11 +107,17 @@ export class SerenaClient implements ISemanticProvider {
         }
       ) as CallToolResult;
 
-      const result = (response.content?.[0] as any)?.text || "";
+      const rawResult = (response.content?.[0] as any)?.text || "";
+      
+      const result = `### 🛡️ SEMANTIC_ARCHITECT_ADVISORY\n` +
+                    `✅ Análisis exitoso para: \`${cleanPath}\`\n\n` +
+                    `${rawResult}\n\n` +
+                    `⚠️ *Verifica las referencias cruzadas antes de refactorizar.*`;
+
       this.cache.set(cleanPath, { data: result, timestamp: Date.now() });
       return result;
     } catch (error) {
-      return `[Error Semántico] ${error instanceof Error ? error.message : "Desconocido"}`;
+      return `❌ [Error Semántico] ${error instanceof Error ? error.message : "Desconocido"}`;
     }
   }
 

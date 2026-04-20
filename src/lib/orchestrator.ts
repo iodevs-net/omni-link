@@ -37,8 +37,15 @@ export class SemanticOrchestrator implements ISemanticProvider {
   }
 
   private getProviderForFile(filePath: string): ISemanticProvider {
+    const isDir = fs.statSync(filePath).isDirectory();
+    if (isDir) {
+      return this.astGrep; // ast-grep maneja directorios de forma nativa
+    }
+
     const ext = filePath.split(".").pop()?.toLowerCase();
-    if (ext === "ts" || ext === "tsx" || ext === "js" || ext === "jsx") {
+    const preferredSerena = ["ts", "tsx", "js", "jsx", "py"];
+    
+    if (preferredSerena.includes(ext || "")) {
       return this.serena;
     }
     return this.astGrep;
@@ -52,6 +59,14 @@ export class SemanticOrchestrator implements ISemanticProvider {
   public async getIncomingReferences(symbolName: string, filePath: string): Promise<string[]> {
     const provider = this.getProviderForFile(filePath);
     return provider.getIncomingReferences(symbolName, filePath);
+  }
+
+  public async suggestFixes(filePath: string, rulesPath?: string): Promise<any[]> {
+    const provider = this.getProviderForFile(filePath);
+    if (provider.suggestFixes) {
+      return provider.suggestFixes(filePath, rulesPath);
+    }
+    return [];
   }
 
   /**

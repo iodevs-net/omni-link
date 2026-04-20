@@ -1,0 +1,7 @@
+id: no-console-log
+message: "¡EVITA LOGS EN PRODUCCIÓN! Usa un sistema de logging formal o elimina este console.log."
+severity: warning
+language: TypeScript
+rule:
+  pattern: console.log($$$)
+fix: ""
