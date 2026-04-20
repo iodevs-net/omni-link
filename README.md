@@ -1,52 +1,99 @@
-# Omni-Link (v1.0.0)
+# 🕸️ Omni-Link: Universal Semantic Intelligence Bridge
 
-**Universal Semantic Intelligence Bridge MCP**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Engine: Serena](https://img.shields.io/badge/Engine-Serena-blueviolet)](https://github.com/oraios/serena)
+[![Parser: ast-grep](https://img.shields.io/badge/Parser-ast--grep-red)](https://ast-grep.github.io/)
+[![Stack: TypeScript](https://img.shields.io/badge/Stack-TypeScript-blue)](https://www.typescriptlang.org/)
 
-**Omni-Link** es un servidor MCP (Model Context Protocol) que actúa como una capa de inteligencia semántica proactiva para agentes IA. Inspirado en el plugin `omni-pi`, este servidor permite que cualquier IDE o terminal agéntica tenga un "Sentido Arácnido" sobre el código.
+**Omni-Link** is a high-performance MCP (Model Context Protocol) server designed to provide AI agents with a proactive "Spider-Sense" regarding codebase architecture. It acts as an orchestration layer that understands symbols, dependencies, and structural impact across multiple languages and projects without saturating the token window.
 
-## 🕸️ Sentido Arácnido (Spider-Sense)
+---
 
-Omni-Link no solo lee archivos; entiende la arquitectura. Utiliza **Serena MCP** como motor semántico subyacente y aplica una capa de **Elite Resilience** y **Semantic Compression** para entregar el contexto exacto sin saturar la ventana de tokens.
+## 🚀 Key Value Proposition
 
-### Herramientas Disponibles:
+Omni-Link solves the "Context Overload" problem by replacing raw code dumps with **High-Density Semantic Advisories**.
 
-- `get_spider_sense`: Devuelve un resumen comprimido de los símbolos y la estructura de un archivo o directorio. Ideal para inyectar en el contexto antes de realizar cambios.
-- `analyze_impact`: Identifica qué otros archivos y símbolos dependen de uno específico. Previene regresiones y roturas de contrato.
-- `get_health`: Informa sobre el estado de la conexión con Serena y la salud de la caché semántica.
+- **Multi-Engine Orchestration:** Automatically routes requests to specialized engines (Serena for TS/JS, ast-grep for Python/Go/Rust).
+- **Cross-Project Intelligence (CPSI):** Detects breaking changes and logic reuse across your entire `~/dev/proyectos` workspace.
+- **Semantic Compression:** Distills complex AST data into concise, agent-optimized contexts (~500 tokens).
+- **Hardware-Safe:** Optimized for local development with minimal I/O and SSD-safe caching strategies.
 
-## 🚀 Instalación y Uso
+---
 
-### Requisitos
-- [Bun](https://bun.sh/) o Node.js.
-- [uv](https://github.com/astral-sh/uv) (para levantar Serena automáticamente).
+## 🏗️ Architecture
 
-### Configuración en tu Agente (Ejemplo Antigravity/Claude Desktop)
+Omni-Link follows a strictly decoupled three-layer architecture:
 
-Añade esto a tu configuración de MCP:
+```mermaid
+graph TD
+    subgraph Layer_C [Layer C: Interface]
+        MCP[Universal MCP Server]
+    end
 
+    subgraph Layer_B [Layer B: Compression]
+        SC[Semantic Compressor]
+    end
+
+    subgraph Layer_A [Layer A: Orchestration]
+        ORCH[Semantic Orchestrator]
+        SER[Serena Adapter]
+        AST[ast-grep Provider]
+    end
+
+    MCP --> SC
+    SC --> ORCH
+    ORCH --> SER
+    ORCH --> AST
+```
+
+---
+
+## 🛠️ Available MCP Tools
+
+| Tool | Purpose | Key Benefit |
+| :--- | :--- | :--- |
+| `get_spider_sense` | Compressed structural overview of a path. | Understand architecture in < 500 tokens. |
+| `analyze_impact` | Local reference analysis. | Prevent breaking changes in the current repo. |
+| `get_global_impact` | **Workspace-wide** dependency analysis. | Detect cross-project "butterfly effects". |
+| `get_health` | Multi-engine status and telemetry. | Ensure semantic engines are alive and responsive. |
+
+---
+
+## 💻 Quick Start
+
+### Prerequisites
+- **Node.js / Bun**
+- **Serena MCP:** (Auto-spawned via `uvx`)
+- **ast-grep:** `cargo install ast-grep` (for non-TS projects)
+
+### Installation
+```bash
+bun install
+npm run build
+```
+
+### Configuration (Antigravity/Claude/Gemini CLI)
+Add the following to your `mcp_config.json`:
 ```json
-{
-  "mcpServers": {
-    "omni-link": {
-      "command": "node",
-      "args": ["/ruta/a/omni-link/build/index.js"]
-    }
-  }
+"omni-link": {
+  "command": "node",
+  "args": ["/absolute/path/to/omni-link/build/index.js"]
 }
 ```
 
-### Desarrollo
+---
 
-1. Instalar dependencias: `bun install`
-2. Compilar: `npm run build`
-3. Probar: `node scratch/test_mcp.js`
+## 🛡️ Engineering Principles (MASTER-PROTOCOL)
 
-## 🛡️ Arquitectura
+Omni-Link development is governed by the `MASTER-PROTOCOL.md`:
+- **DRY:** Never reinvent the parser; leverage existing high-performance binaries.
+- **KISS:** Keep the agent interface simple; hide the complexity of multi-engine routing.
+- **LEAN:** No visual fluff, no "AI Lore". Pure, high-density data.
 
-- **Layer A (Adaptación):** Conecta con Serena MCP vía stdio con lógica de reconexión automática.
-- **Layer B (Compresión):** Filtra y prioriza símbolos estructurales sobre detalles de implementación.
-- **Layer C (Interfaz):** Expone herramientas MCP simplificadas para un consumo rápido por parte de la IA.
+---
 
-## 📄 Licencia
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
-MIT - Elevando la precisión de la ingeniería asistida por IA.
+---
+**Omni-Link** — *Giving Agents the Vision to Build Resilient Systems.*
