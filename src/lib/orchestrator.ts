@@ -43,7 +43,7 @@ export class SemanticOrchestrator implements ISemanticProvider {
     }
 
     const ext = filePath.split(".").pop()?.toLowerCase();
-    const preferredSerena = ["ts", "tsx", "js", "jsx", "py"];
+    const preferredSerena = ["ts", "tsx", "js", "jsx"];
     
     if (preferredSerena.includes(ext || "")) {
       return this.serena;
