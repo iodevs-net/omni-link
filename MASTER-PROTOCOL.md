@@ -34,7 +34,7 @@ Estandarizar la **Inteligencia Semántica Proactiva** para agentes de IA. Omni-L
 *   **GATE 1: Análisis Estructural**: Validar el árbol sintáctico (AST) antes de proponer cambios.
 *   **GATE 2: Planificación Atómica**: Definir tareas en `implementation_plan.md` y `task.md`.
 *   **GATE 3: Implementación SOLID**: Código idiomático, seguro y listo para producción.
-*   **GATE 4: Verificación Cruzada**: `npm run build` + `test_orchestration.js`.
+*   **GATE 4: Verificación Cruzada**: `npm run build` + `node scratch/test_mcp.js`.
 *   **GATE 5: Auditoría de Contexto**: Validar que la salida del compressor sea útil y concisa.
 
 ---
@@ -51,13 +51,17 @@ Estandarizar la **Inteligencia Semántica Proactiva** para agentes de IA. Omni-L
 *   [x] Health heartbeat y caching.
 *   [x] Soporte multilingüe básico (regex-based).
 
-### Fase 3: Orquestación Universal (ACTIVA)
-*   [ ] **Orchestrator Logic**: Enrutamiento dinámico por extensión.
-*   [ ] **ast-grep Integration**: Motor de alto rendimiento para Python, Go y Rust.
-*   [ ] **Detailed Health**: Reporte de estado por cada motor independiente.
+### Fase 3: Orquestación Universal (COMPLETADA)
+*   [x] **Orchestrator Logic**: Enrutamiento dinámico por extensión.
+*   [x] **ast-grep Integration**: Motor de alto rendimiento para Python, Go y Rust.
+*   [x] **Detailed Health**: Reporte de estado por cada motor independiente.
+
+### Fase 4: CPSI & Expert Intel (ACTIVA)
+*   [ ] **Global Search Optimization**: Índices para búsquedas cross-project instantáneas.
+*   [ ] **Rule Library**: Catálogo de reglas expertas para stacks comunes (React, Node, Go).
+*   [ ] **Diff Compression**: Representación minimalista de cambios sugeridos.
 
 ---
-
 ## 5. Reglas de Ingeniería (AI Mandatory Instructions)
 
 1.  **Protección de Hardware**: Minimizar escrituras en SSD. Usar `/scratch` para basura técnica.
@@ -67,4 +71,4 @@ Estandarizar la **Inteligencia Semántica Proactiva** para agentes de IA. Omni-L
 
 ---
 
-**Estado del Protocolo: ACTIVO / FASE III (Orquestación Universal)**
+**Estado del Protocolo: ACTIVO / FASE IV (CPSI & Expert Intel)**

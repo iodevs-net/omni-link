@@ -12,9 +12,9 @@
 
 The project is structured into three distinct layers:
 
-1.  **Layer A (Adaptation):** `src/lib/serena.ts`
-    - Manages the connection to the external `Serena MCP` server.
-    - Implements a resilient client with automatic reconnection and a semantic cache (TTL: 10s).
+1.  **Layer A (Adaptation):** `src/lib/serena.ts` & `src/lib/ast-grep.ts`
+    - Manages connections to semantic engines.
+    - Implements multi-engine fallback and specialized parsing.
 2.  **Layer B (Compression):** `src/lib/compressor.ts`
     - Processes raw symbol data to maximize value-per-token.
     - Prioritizes structural elements (exports, classes, interfaces) over implementation details.
@@ -24,9 +24,11 @@ The project is structured into three distinct layers:
 
 ## 🛠️ Available MCP Tools
 
-- `get_spider_sense(path: string)`: Returns a compressed semantic overview of a file or directory. Recommended before any refactoring.
-- `analyze_impact(symbol_name: string, path: string)`: Identifies incoming references to a symbol to prevent breaking changes.
-- `get_health()`: Monitors the connection status with Serena and cache statistics.
+- `get_spider_sense(path: string)`: Returns a compressed semantic overview of a file or directory.
+- `analyze_impact(symbol_name: string, path: string)`: Identifies incoming references to a symbol in the current project.
+- `get_global_impact(symbol_name: string)`: **CPSI Engine**. Analyzes symbol impact across all workspace projects.
+- `check_expert_rules(path: string)`: **Sentinel Engine**. Validates code against expert rules (e.g., naming, patterns).
+- `get_health()`: Monitors engine connection status and cache statistics.
 
 ## 💻 Development Commands
 

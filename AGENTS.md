@@ -5,11 +5,11 @@ Omni-Link is a Universal Semantic Intelligence Bridge MCP (Model Context Protoco
 
 ## Architecture & Data Flow
 The system follows a three-layer architecture:
-- **Layer A (Adaptation)**: Connects to Serena MCP via stdio with automatic reconnection logic
-- **Layer B (Compression)**: Filters and prioritizes structural symbols over implementation details using semantic compression
-- **Layer C (Interface)**: Exposes simplified MCP tools for rapid consumption by AI agents
+- **Layer A (Adaptation)**: Multi-engine orchestration. Connects to Serena MCP for high-fidelity TS/JS/PY analysis and leverages `ast-grep` for universal/directory scanning.
+- **Layer B (Compression)**: Filters and prioritizes structural symbols over implementation details using semantic compression.
+- **Layer C (Interface)**: Exposes simplified MCP tools for rapid consumption by AI agents.
 
-Data flows from MCP tool requests → SemanticOrchestrator (routes to Serena or ast-grep based on file type) → Symbol overview/reference retrieval → SemanticCompressor (filters and compresses) → MCP response.
+Data flows from MCP tool requests → SemanticOrchestrator (routes by extension) → Symbol retrieval (Serena or ast-grep) → SemanticCompressor → MCP response.
 
 ## Key Directories
 - `src/`: Main source code
@@ -47,10 +47,12 @@ Data flows from MCP tool requests → SemanticOrchestrator (routes to Serena or 
 - **Documentation**: JSDoc-style comments for classes and methods
 
 ## Important Files
-- `src/index.ts`: Main MCP server implementation exposing three tools:
-  - `get_spider_sense`: Returns compressed symbol overview of a path
-  - `analyze_impact`: Finds incoming references to a symbol
-  - `get_health`: Reports connection health of semantic providers
+- `src/index.ts`: Main MCP server implementation exposing five tools:
+  - `get_spider_sense`: Returns compressed symbol overview of a path.
+  - `analyze_impact`: Finds incoming references to a symbol.
+  - `get_global_impact`: Analyzes symbol impact across the entire workspace.
+  - `check_expert_rules`: Validates code against project-specific expert rules (Sentinel).
+  - `get_health`: Reports connection health and telemetry.
 - `src/types.ts`: Defines ISPsemanticProvider interface and CallToolResult type
 - `src/lib/orchestrator.ts`: Core routing logic selecting provider by file extension
 - `src/lib/compressor.ts`: Symbol compression algorithm

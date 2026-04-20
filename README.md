@@ -13,8 +13,8 @@
 
 Omni-Link solves the "Context Overload" problem by replacing raw code dumps with **High-Density Semantic Advisories**.
 
-- **Multi-Engine Orchestration:** Automatically routes requests to specialized engines (Serena for TS/JS, ast-grep for Python/Go/Rust).
-- **Cross-Project Intelligence (CPSI):** Detects breaking changes and logic reuse across your entire `~/dev/proyectos` workspace.
+- **Multi-Engine Orchestration:** Automatically routes requests to specialized engines (Serena for TS/JS, ast-grep for Python/Go/Rust and directory analysis).
+- **Cross-Project Semantic Intelligence (CPSI):** Detects breaking changes and logic reuse across your entire workspace.
 - **Semantic Compression:** Distills complex AST data into concise, agent-optimized contexts (~500 tokens).
 - **Hardware-Safe:** Optimized for local development with minimal I/O and SSD-safe caching strategies.
 
@@ -55,6 +55,7 @@ graph TD
 | `get_spider_sense` | Compressed structural overview of a path. | Understand architecture in < 500 tokens. |
 | `analyze_impact` | Local reference analysis. | Prevent breaking changes in the current repo. |
 | `get_global_impact` | **Workspace-wide** dependency analysis. | Detect cross-project "butterfly effects". |
+| `check_expert_rules` | **Sentinel**: Validate code against expert rules. | Ensure compliance with project-specific gotchas. |
 | `get_health` | Multi-engine status and telemetry. | Ensure semantic engines are alive and responsive. |
 
 ---
@@ -94,6 +95,12 @@ Omni-Link development is governed by the `MASTER-PROTOCOL.md`:
 
 ## 📄 License
 Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+### Manual Test
+```bash
+node scratch/test_mcp.js
+```
 
 ---
 **Omni-Link** — *Giving Agents the Vision to Build Resilient Systems.*
