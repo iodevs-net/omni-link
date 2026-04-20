@@ -103,4 +103,13 @@ node scratch/test_mcp.js
 ```
 
 ---
+---
+## 👤 Author
+
+**Leonardo Vergara**
+- Email: [leonardovergaramarin@gmail.com](mailto:leonardovergaramarin@gmail.com)
+- Web: [iodevs.net](https://iodevs.net)
+- Company: [ionet.cl](https://ionet.cl)
+
+---
 **Omni-Link** — *Giving Agents the Vision to Build Resilient Systems.*

@@ -2,6 +2,8 @@
   "name": "omni-link",
   "version": "1.0.0",
   "description": "Universal Semantic Intelligence Bridge MCP",
+  "author": "Leonardo Vergara <leonardovergaramarin@gmail.com> (https://iodevs.net)",
+  "homepage": "https://iodevs.net",
   "main": "build/index.js",
   "type": "module",
   "scripts": {
