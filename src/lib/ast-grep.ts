@@ -67,6 +67,28 @@ export class AstGrepProvider implements ISemanticProvider {
     }
   }
 
+  /**
+   * Busca un patrón específico en una ruta determinada (útil para escaneos cross-project).
+   */
+  public async searchPatternInPath(pattern: string, name: string, searchPath: string): Promise<string[]> {
+    if (!this.isAvailable) await this.connect();
+    if (!this.isAvailable) return [];
+
+    try {
+      // Reemplazamos $NAME en el patrón si es necesario
+      const finalPattern = pattern.replace("$NAME", name);
+      // Añadimos exclusiones explícitas para evitar saturación y ruido
+      const excludeGlobs = "--globs '!**/node_modules/**' --globs '!**/.git/**' --globs '!**/venv/**' --globs '!**/build/**' --globs '!**/dist/**'";
+      const { stdout } = await execPromise(`${this.binaryPath} run -p '${finalPattern}' "${searchPath}" ${excludeGlobs} --json`);
+      const matches = JSON.parse(stdout);
+      
+      // Retornamos las rutas únicas de los archivos que contienen el patrón
+      return [...new Set(matches.map((m: any) => m.file))] as string[];
+    } catch {
+      return [];
+    }
+  }
+
   public async getIncomingReferences(symbolName: string, path: string): Promise<string[]> {
     // ast-grep es excelente para buscar usos estructurales
     try {

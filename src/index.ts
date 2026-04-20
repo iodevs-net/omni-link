@@ -53,10 +53,17 @@ class OmniLinkServer {
         },
         {
           name: "analyze_impact",
-          description: "Analiza el impacto de cambiar un símbolo específico. Identifica qué otros archivos podrían romperse.",
+          description: "Analiza el impacto de cambiar un símbolo específico en el proyecto actual.",
           inputSchema: zodToJsonSchema(z.object({
             symbol_name: z.string().min(1).describe("Nombre del símbolo (función, clase, variable) a cambiar"),
             path: z.string().min(1).describe("Ruta del archivo donde reside el símbolo"),
+          })),
+        },
+        {
+          name: "get_global_impact",
+          description: "ANALÍTICA AVANZADA: Analiza el impacto de un símbolo en TODOS los proyectos del workspace (~/dev/proyectos).",
+          inputSchema: zodToJsonSchema(z.object({
+            symbol_name: z.string().min(1).describe("Nombre del símbolo a buscar en todo el workspace"),
           })),
         },
         {
@@ -103,6 +110,34 @@ class OmniLinkServer {
               content: [{
                 type: "text",
                 text: `⚠️ IMPACTO DETECTADO: El símbolo '${symbol_name}' es referenciado en los siguientes archivos:\n${references.map(f => `- ${f}`).join("\n")}\n\n*Valida estos archivos tras realizar el cambio.*`
+              }]
+            };
+          }
+
+          case "get_global_impact": {
+            const { symbol_name } = args as { symbol_name: string };
+            const impact = await this.provider.getGlobalImpact(symbol_name);
+            
+            const projects = Object.keys(impact);
+            if (projects.length === 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `✅ No se detectó impacto global para '${symbol_name}' en otros proyectos del workspace.`
+                }]
+              };
+            }
+
+            let report = `🚨 IMPACTO GLOBAL DETECTADO para '${symbol_name}':\n`;
+            for (const project of projects) {
+              report += `\n### 📦 Proyecto: ${project}\n`;
+              report += impact[project].map(f => `- ${f}`).join("\n") + "\n";
+            }
+
+            return {
+              content: [{
+                type: "text",
+                text: report
               }]
             };
           }
