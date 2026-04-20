@@ -1,0 +1,6 @@
+node_modules
+build
+.serena
+.DS_Store
+*.log
+scratch/test.py
