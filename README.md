@@ -1,115 +1,121 @@
-# 🕸️ Omni-Link: Universal Semantic Intelligence Bridge
+# Omni-Link: Universal Semantic Intelligence Bridge
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Engine: Serena](https://img.shields.io/badge/Engine-Serena-blueviolet)](https://github.com/oraios/serena)
-[![Parser: ast-grep](https://img.shields.io/badge/Parser-ast--grep-red)](https://ast-grep.github.io/)
 [![Stack: TypeScript](https://img.shields.io/badge/Stack-TypeScript-blue)](https://www.typescriptlang.org/)
 
-**Omni-Link** is the **Precision Layer** for AI coding agents. It acts as a standardized semantic bridge that provides high-fidelity architectural context while minimizing context noise. By orchestrating multiple semantic engines, Omni-Link ensures that even the most constrained LLMs operate with senior-level structural awareness.
+**Omni-Link** is a **Precision Layer** for AI coding agents. It provides high-fidelity architectural context by orchestrating multiple semantic engines (Serena, ast-grep) and compressing results into minimum viable context (~500 tokens).
 
 ---
 
-## 🚀 Key Value Proposition
-
-Omni-Link solves the "Context Overload" problem by replacing raw code dumps with **High-Density Semantic Advisories**.
-
-- **MVC (Minimum Viable Context):** Replaces raw code dumps with task-specific semantic maps.
-- **Precision Orchestration:** Dynamically routes queries to the best engine (Serena, ast-grep, or LSP) for the job.
-- **Cross-Project Intelligence (CPSI):** Detects breaking changes across your entire dev workspace.
-- **Agent Synergy:** Designed to enhance power-tools like `oh-my-pi`, `Antigravity`, and `Claude Code`.
-
----
-
-## 🏗️ Architecture
-
-Omni-Link follows a strictly decoupled three-layer architecture:
-
-```mermaid
-graph TD
-    subgraph Layer_C [Layer C: Interface]
-        MCP[Universal MCP Server]
-    end
-
-    subgraph Layer_B [Layer B: Compression]
-        SC[Semantic Compressor]
-    end
-
-    subgraph Layer_A [Layer A: Orchestration]
-        ORCH[Semantic Orchestrator]
-        SER[Serena Adapter]
-        AST[ast-grep Provider]
-    end
-
-    MCP --> SC
-    SC --> ORCH
-    ORCH --> SER
-    ORCH --> AST
-```
-
----
-
-## 🛠️ Available MCP Tools
-
-| Tool | Purpose | Key Benefit |
-| :--- | :--- | :--- |
-| `get_spider_sense` | Compressed structural overview of a path. | Understand architecture in < 500 tokens. |
-| `analyze_impact` | Local reference analysis. | Prevent breaking changes in the current repo. |
-| `get_global_impact` | **Workspace-wide** dependency analysis. | Detect cross-project "butterfly effects". |
-| `check_expert_rules` | **Sentinel**: Validate code against expert rules. | Ensure compliance with project-specific gotchas. |
-| `get_health` | Multi-engine status and telemetry. | Ensure semantic engines are alive and responsive. |
-
----
-
-## 💻 Quick Start
+## Quick Start
 
 ### Prerequisites
-- **Node.js / Bun**
-- **Serena MCP:** (Auto-spawned via `uvx`)
-- **ast-grep:** `cargo install ast-grep` (for non-TS projects)
 
-### Installation
+| Dependency | Required For | Install |
+|-----------|-------------|---------|
+| Node.js 18+ | Running Omni-Link | [nodejs.org](https://nodejs.org) |
+| uv | Serena engine (TS/JS analysis) | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| ast-grep (sg) | Universal engine (Python/Go/Rust) | `cargo install ast-grep --locked` |
+
+### Install & Build
+
 ```bash
-bun install
-npm run build
+cd omni-link
+npm install    # installs deps + builds automatically (postinstall)
+# or manually: npm run build
 ```
 
-### Configuration (Antigravity/Claude/Gemini CLI)
-Add the following to your `mcp_config.json`:
+### Add to Your AI Client
+
+**Claude Code** (`claude.json` at project root):
+
 ```json
-"omni-link": {
-  "command": "node",
-  "args": ["/absolute/path/to/omni-link/build/index.js"]
+{
+  "mcpServers": {
+    "omni-link": {
+      "command": "node",
+      "args": ["build/index.js"],
+      "env": {
+        "OMNI_LINK_WORKSPACE": ".."
+      }
+    }
+  }
+}
+```
+
+**VS Code** (`.vscode/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "omni-link": {
+      "command": "node",
+      "args": ["${workspaceFolder}/build/index.js"]
+    }
+  }
 }
 ```
 
 ---
 
-## 🛡️ Engineering Principles (MASTER-PROTOCOL)
+## Available Tools
 
-Omni-Link development is governed by the `MASTER-PROTOCOL.md`:
-- **DRY:** Never reinvent the parser; leverage existing high-performance binaries.
-- **KISS:** Keep the agent interface simple; hide the complexity of multi-engine routing.
-- **LEAN:** No visual fluff, no "AI Lore". Pure, high-density data.
+| Tool | Call When | What It Does | Output |
+|------|-----------|-------------|--------|
+| `get_spider_sense` | BEFORE editing any file | Compressed structural overview of file/directory | ~500 tokens of symbols, classes, types |
+| `analyze_impact` | BEFORE renaming/refactoring a symbol | Finds all files referencing that symbol | File list or "SAFE" |
+| `get_global_impact` | BEFORE modifying a shared/exported symbol | Scans sibling projects for references | Cross-project file list |
+| `check_expert_rules` | AFTER writing/modifying code | Validates file against YAML expert rules | Violation list or "CLEAN" |
+| `get_health` | FIRST, if any tool returns engine errors | Reports engine status + repair commands | Engine status JSON |
+
+### Environment Variables
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `OMNI_LINK_WORKSPACE` | `../` from CWD | Cross-project scan root |
+| `OMNI_LINK_SG_PATH` | auto-detected | Custom ast-grep binary path |
+| `OMNI_LINK_DEBUG` | off | Enable verbose stderr logging |
 
 ---
 
-## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+## How It Works
+
+```
+Tool Call → SemanticOrchestrator → file extension check
+                                    ├── .ts/.tsx/.js/.jsx  → Serena (high-fidelity AST)
+                                    └── others              → ast-grep (universal)
+                                  → SemanticCompressor (~500 token cap)
+                                  → Response
+```
 
 ---
-### Manual Test
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `SERENA_UNAVAILABLE` | uv not installed | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| `ASTGREP_UNAVAILABLE` | sg not found | `cargo install ast-grep` or set `OMNI_LINK_SG_PATH` |
+| Tools return engine errors | Engine disconnected | Call `get_health` for repair instructions |
+| Wrong workspace scanned | `OMNI_LINK_WORKSPACE` misconfigured | Set env var to correct parent directory |
+
+---
+
+## Development
+
+```bash
+npm run dev        # watch mode
+npm run inspector  # MCP inspector GUI
+```
+
+### Test
+
 ```bash
 node scratch/test_mcp.js
 ```
 
 ---
----
-## 👤 Author
 
-**Leonardo Vergara**
-- Email: [leonardovergaramarin@gmail.com](mailto:leonardovergaramarin@gmail.com)
-- Web: [iodevs.net](https://iodevs.net)
-- Company: [ionet.cl](https://ionet.cl)
+## License
 
----
-**Omni-Link** — *Giving Agents the Vision to Build Resilient Systems.*
+MIT — Leonardo Vergara ([iodevs.net](https://iodevs.net))
