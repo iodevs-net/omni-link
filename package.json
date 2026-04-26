@@ -1,24 +1,45 @@
 {
-  "name": "omni-link",
+  "name": "@iodevs/omni-link",
   "version": "1.0.0",
   "description": "Universal Semantic Intelligence Bridge MCP — Precision Layer for AI coding agents",
   "author": "Leonardo Vergara <leonardovergaramarin@gmail.com> (https://iodevs.net)",
   "homepage": "https://iodevs.net",
+  "license": "MIT",
   "main": "build/index.js",
+  "bin": {
+    "omni-link": "build/index.js"
+  },
+  "files": [
+    "build/"
+  ],
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "postinstall": "npm run build || echo '[omni-link] Build skipped — run npm run build manually'",
+    "prepublishOnly": "npm run build",
     "start": "node build/index.js",
     "dev": "tsc -w",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.24.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
-    "typescript": "^5.3.3"
-  }
+    "typescript": "^5.7.3"
+  },
+  "keywords": [
+    "mcp",
+    "claude-code",
+    "semantic",
+    "code-intelligence",
+    "ai-coding"
+  ]
 }
