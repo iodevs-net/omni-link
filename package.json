@@ -1,13 +1,14 @@
 {
   "name": "omni-link",
   "version": "1.0.0",
-  "description": "Universal Semantic Intelligence Bridge MCP",
+  "description": "Universal Semantic Intelligence Bridge MCP — Precision Layer for AI coding agents",
   "author": "Leonardo Vergara <leonardovergaramarin@gmail.com> (https://iodevs.net)",
   "homepage": "https://iodevs.net",
   "main": "build/index.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "postinstall": "npm run build || echo '[omni-link] Build skipped — run npm run build manually'",
     "start": "node build/index.js",
     "dev": "tsc -w",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js"

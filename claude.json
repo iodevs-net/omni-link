@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "omni-link": {
+      "command": "node",
+      "args": ["build/index.js"],
+      "env": {
+        "OMNI_LINK_WORKSPACE": ".."
+      }
+    }
+  }
+}
