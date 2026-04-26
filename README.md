@@ -5,9 +5,85 @@
 
 **Omni-Link** is a **Precision Layer** for AI coding agents. It provides high-fidelity architectural context by orchestrating multiple semantic engines (Serena, ast-grep) and compressing results into minimum viable context (~500 tokens).
 
+It works as an **MCP server** and can be used with any MCP-compatible client (Claude Code, VS Code, Cursor, etc.).
+
 ---
 
-## Quick Start
+## Installation
+
+Omni-Link can be used in three ways, from simplest to most manual.
+
+### A) Plugin Marketplace (Claude Code — recommended)
+
+This is the zero-friction path. Tools appear automatically without manual `.mcp.json` config.
+
+**1. Register the marketplace** — add this to `~/.claude/settings.json`:
+
+```json
+"extraKnownMarketplaces": {
+  "omni-link": {
+    "source": {
+      "source": "github",
+      "repo": "iodevs-net/omni-link"
+    }
+  }
+}
+```
+
+**2. Install the plugin:**
+
+```bash
+claude plugins install omni-link@omni-link
+```
+
+**3. Reload plugins** — run `/reload-plugins` inside Claude Code, or restart.
+
+The tools `get_spider_sense`, `analyze_impact`, `get_global_impact`, `check_expert_rules`, and `get_health` are now available as native MCP tools. This works with all Claude Code backends (Anthropic API, Bedrock, DeepSeek proxy, etc.).
+
+### B) Direct npx (any MCP client)
+
+No install required. Point your MCP config to the published npm package.
+
+**Claude Code** (`~/.claude/mcp.json` or project `claude.json`):
+
+```json
+{
+  "mcpServers": {
+    "omni-link": {
+      "command": "npx",
+      "args": ["-y", "@iodevs/omni-link"]
+    }
+  }
+}
+```
+
+**VS Code / Cursor** (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "omni-link": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@iodevs/omni-link"]
+    }
+  }
+}
+```
+
+> **Note for proxy users**: If your AI client proxies through a non-Anthropic API, MCP servers from `settings.json` / `mcp.json` may not be exposed to the model. Use the Plugin Marketplace (A) or the Skill fallback (C) instead.
+
+### C) From source (development)
+
+Clone, install, and run locally:
+
+```bash
+git clone https://github.com/iodevs-net/omni-link.git
+cd omni-link
+npm install
+```
+
+Then configure your MCP client to use `node build/index.js`.
 
 ### Prerequisites
 
@@ -17,44 +93,15 @@
 | uv | Serena engine (TS/JS analysis) | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | ast-grep (sg) | Universal engine (Python/Go/Rust) | `cargo install ast-grep --locked` |
 
-### Install & Build
+### Skill Fallback (Claude Code)
 
-```bash
-cd omni-link
-npm install    # installs deps + builds automatically (postinstall)
-# or manually: npm run build
+If your setup doesn't expose MCP tools (e.g., certain proxy configurations), the plugin includes a **skill** that teaches Claude to call Omni-Link via JSON-RPC over stdin/stdout. After installing the plugin, invoke it with:
+
+```
+/omni-link
 ```
 
-### Add to Your AI Client
-
-**Claude Code** (`claude.json` at project root):
-
-```json
-{
-  "mcpServers": {
-    "omni-link": {
-      "command": "node",
-      "args": ["build/index.js"],
-      "env": {
-        "OMNI_LINK_WORKSPACE": ".."
-      }
-    }
-  }
-}
-```
-
-**VS Code** (`.vscode/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "omni-link": {
-      "command": "node",
-      "args": ["${workspaceFolder}/build/index.js"]
-    }
-  }
-}
-```
+The skill provides a Bash one-liner that starts the MCP server, sends a request, and returns the result.
 
 ---
 
@@ -98,6 +145,8 @@ Tool Call → SemanticOrchestrator → file extension check
 | `ASTGREP_UNAVAILABLE` | sg not found | `cargo install ast-grep` or set `OMNI_LINK_SG_PATH` |
 | Tools return engine errors | Engine disconnected | Call `get_health` for repair instructions |
 | Wrong workspace scanned | `OMNI_LINK_WORKSPACE` misconfigured | Set env var to correct parent directory |
+| `Plugin omni-link not found` | Marketplace not registered | Add `omni-link` to `extraKnownMarketplaces` in `settings.json` |
+| Tools not available in session | Plugin loaded, MCP tools not exposed | Run `/reload-plugins` or restart. Proxy setups may need the plugin approach or skill fallback. |
 
 ---
 
