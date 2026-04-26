@@ -9,9 +9,6 @@ import { SemanticCompressor } from "./lib/compressor.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 
-/**
- * Omni-Link: Universal Semantic Intelligence Bridge
- */
 class OmniLinkServer {
   private server: Server;
   private provider: SemanticOrchestrator;
@@ -31,8 +28,7 @@ class OmniLinkServer {
 
     this.provider = new SemanticOrchestrator();
     this.setupHandlers();
-    
-    // Error handling
+
     this.server.onerror = (error) => console.error("[MCP Error]", error);
     process.on("SIGINT", async () => {
       await this.provider.disconnect();
@@ -41,48 +37,46 @@ class OmniLinkServer {
   }
 
   private setupHandlers() {
-    // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
         {
           name: "get_spider_sense",
-          description: "Obtiene una visión arácnida (contexto semántico comprimido) de un archivo o directorio. Úsalo antes de refactorizar para entender la estructura.",
+          description: "BEFORE modifying or refactoring any file: get compressed structural overview (classes, functions, interfaces, types, exports). Returns ~500 tokens of high-density architecture context. Use instead of reading entire files to understand code structure quickly.",
           inputSchema: zodToJsonSchema(z.object({
-            path: z.string().min(1).describe("Ruta relativa del archivo o directorio a analizar"),
+            path: z.string().min(1).describe("File or directory path relative to process CWD. Examples: 'src/index.ts', 'src/lib/', 'README.md'"),
           })),
         },
         {
           name: "analyze_impact",
-          description: "Analiza el impacto de cambiar un símbolo específico en el proyecto actual.",
+          description: "BEFORE renaming, deleting, or refactoring a symbol: find ALL files in current project that reference it. Prevents breaking changes by revealing hidden dependencies. Safe to call even if symbol doesn't exist.",
           inputSchema: zodToJsonSchema(z.object({
-            symbol_name: z.string().min(1).describe("Nombre del símbolo (función, clase, variable) a cambiar"),
-            path: z.string().min(1).describe("Ruta del archivo donde reside el símbolo"),
+            symbol_name: z.string().min(1).describe("Exact symbol name to search references for. Examples: 'getUserById', 'UserService', 'MAX_RETRIES', 'handleClick'"),
+            path: z.string().min(1).describe("Path to file where symbol is defined, relative to CWD. Used to select analysis engine. Example: 'src/services/user.ts'"),
           })),
         },
         {
           name: "get_global_impact",
-          description: "ANALÍTICA AVANZADA: Analiza el impacto de un símbolo en TODOS los proyectos del workspace (~/dev/proyectos).",
+          description: "BEFORE renaming a shared/exported symbol: check if OTHER projects in workspace (~/dev/proyectos) reference it. Cross-project dependency scanner for monorepo-like setups. Calls ast-grep across sibling directories.",
           inputSchema: zodToJsonSchema(z.object({
-            symbol_name: z.string().min(1).describe("Nombre del símbolo a buscar en todo el workspace"),
+            symbol_name: z.string().min(1).describe("Symbol name to search in all workspace projects. Examples: 'backendBaseUrl', 'SharedType', 'logger'"),
           })),
         },
         {
           name: "check_expert_rules",
-          description: "SENTINEL: Verifica el archivo contra reglas expertas del proyecto (multi-tenant, gotchas, naming) y sugiere arreglos.",
+          description: "AFTER writing or modifying code: validate file against project-specific YAML expert rules. Catches naming violations, multi-tenant gotchas, anti-patterns, and enforced conventions (e.g., no console.log, specific import patterns).",
           inputSchema: zodToJsonSchema(z.object({
-            path: z.string().min(1).describe("Ruta del archivo a verificar"),
-            rules_path: z.string().optional().describe("Opcional: Ruta al archivo de reglas YAML personalizado"),
+            path: z.string().min(1).describe("Path to file to validate, relative to CWD. Example: 'src/index.ts'"),
+            rules_path: z.string().optional().describe("Optional: custom YAML rules file path. Falls back to .omni-rules.yaml in project root."),
           })),
         },
         {
           name: "get_health",
-          description: "Verifica el estado de los proveedores de inteligencia semántica (Serena, etc.)",
+          description: "Check if semantic engines (Serena, ast-grep) are connected and responsive. Call this FIRST if any other tool returns engine errors. Returns status, latency, and repair suggestions for each engine.",
           inputSchema: zodToJsonSchema(z.object({})),
         },
       ],
     }));
 
-    // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
@@ -92,11 +86,11 @@ class OmniLinkServer {
             const { path } = args as { path: string };
             const rawSymbols = await this.provider.getSymbolsOverview(path);
             const compressed = SemanticCompressor.compress(rawSymbols);
-            
+
             return {
               content: [{
                 type: "text",
-                text: `### 🛡️ SEMANTIC_ARCHITECT_ADVISORY\n${compressed}\n\n*Review references before refactoring any of these symbols.*`
+                text: `### STRUCTURAL OVERVIEW: ${path}\n${compressed}\n\n---\n*Verify references before refactoring any of these symbols.*`
               }]
             };
           }
@@ -104,12 +98,12 @@ class OmniLinkServer {
           case "analyze_impact": {
             const { symbol_name, path } = args as { symbol_name: string; path: string };
             const references = await this.provider.getIncomingReferences(symbol_name, path);
-            
+
             if (references.length === 0) {
               return {
                 content: [{
                   type: "text",
-                  text: `✅ No se detectaron referencias externas críticas para '${symbol_name}'. El cambio parece seguro.`
+                  text: `SAFE: No files reference '${symbol_name}'. Rename/delete appears safe.`
                 }]
               };
             }
@@ -117,7 +111,7 @@ class OmniLinkServer {
             return {
               content: [{
                 type: "text",
-                text: `⚠️ IMPACTO DETECTADO: El símbolo '${symbol_name}' es referenciado en los siguientes archivos:\n${references.map(f => `- ${f}`).join("\n")}\n\n*Valida estos archivos tras realizar el cambio.*`
+                text: `IMPACT FOUND: '${symbol_name}' is referenced in ${references.length} file(s):\n${references.map(f => `- ${f}`).join("\n")}\n\n---\n*Review these files after making changes.*`
               }]
             };
           }
@@ -125,20 +119,20 @@ class OmniLinkServer {
           case "get_global_impact": {
             const { symbol_name } = args as { symbol_name: string };
             const impact = await this.provider.getGlobalImpact(symbol_name);
-            
+
             const projects = Object.keys(impact);
             if (projects.length === 0) {
               return {
                 content: [{
                   type: "text",
-                  text: `✅ No se detectó impacto global para '${symbol_name}' en otros proyectos del workspace.`
+                  text: `GLOBAL SAFE: No other projects reference '${symbol_name}'.`
                 }]
               };
             }
 
-            let report = `🚨 IMPACTO GLOBAL DETECTADO para '${symbol_name}':\n`;
+            let report = `GLOBAL IMPACT: '${symbol_name}' referenced across ${projects.length} project(s):\n`;
             for (const project of projects) {
-              report += `\n### 📦 Proyecto: ${project}\n`;
+              report += `\n## Project: ${project}\n`;
               report += impact[project].map(f => `- ${f}`).join("\n") + "\n";
             }
 
@@ -153,35 +147,35 @@ class OmniLinkServer {
           case "check_expert_rules": {
             const { path, rules_path } = args as { path: string, rules_path?: string };
             if (!this.provider.suggestFixes) {
-              return { content: [{ type: "text", text: "❌ El proveedor actual no soporta Reglas Expertas." }], isError: true };
+              return { content: [{ type: "text", text: "EXPERT_RULES_UNSUPPORTED: Current engine does not support expert rules. Requires ast-grep with YAML rules file." }], isError: true };
             }
 
             const findings = await this.provider.suggestFixes(path, rules_path);
-            
+
             if (findings.length === 0) {
               return {
                 content: [{
                   type: "text",
-                  text: "✅ No se detectaron violaciones de reglas expertas en este archivo."
+                  text: "CLEAN: No expert rule violations found in this file."
                 }]
               };
             }
 
-            let report = `### 🛡️ SEMANTIC_SENTINEL_ADVISORY\nSe han detectado ${findings.length} violaciones de reglas expertas en este archivo.\n\n`;
+            let report = `EXPERT RULES: ${findings.length} violation(s) found:\n\n`;
             for (const f of findings) {
-              const severityEmoji = f.severity === "error" ? "🚨" : "⚠️";
-              report += `#### ${severityEmoji} [${f.ruleId}] ${f.message}\n`;
-              report += `> **Ubicación:** Línea ${f.range.start.line + 1}, Columna ${f.range.start.column + 1}\n`;
-              
+              const severity = f.severity === "error" ? "ERROR" : "WARN";
+              report += `[${severity}] [${f.ruleId}] ${f.message}\n`;
+              report += `  Location: line ${f.range.start.line + 1}, col ${f.range.start.column + 1}\n`;
+
               if (f.replacement !== null) {
-                report += `\n💡 **Sugerencia de Refactorización:**\n`;
+                report += `  Suggestion:\n`;
                 if (f.replacement === "") {
-                  report += `*Se sugiere eliminar este bloque de código.*\n`;
+                  report += `  Remove this block.\n`;
                 } else {
-                  report += `\`\`\`${f.language}\n${f.replacement}\n\`\`\`\n`;
+                  report += `  Replace with: ${f.replacement}\n`;
                 }
               }
-              report += `\n---\n`;
+              report += `\n`;
             }
 
             return {
@@ -194,24 +188,28 @@ class OmniLinkServer {
 
           case "get_health": {
             const health = await this.provider.getHealth();
-            const statusEmoji = health.alive ? "🟢" : "🔴";
-            
+            const statusEmoji = health.alive ? "OK" : "FAIL";
+
             return {
               content: [{
                 type: "text",
-                text: `### ${statusEmoji} OMNI-LINK HEALTH REPORT\n\`\`\`json\n${JSON.stringify(health, null, 2)}\n\`\`\``
+                text: `OMNI-LINK HEALTH [${statusEmoji}]\n${JSON.stringify(health, null, 2)}`
               }]
             };
           }
 
           default:
-            throw new Error(`Tool not found: ${name}`);
+            return {
+              content: [{ type: "text", text: `UNKNOWN_TOOL: '${name}' is not available. Available tools: get_spider_sense, analyze_impact, get_global_impact, check_expert_rules, get_health` }],
+              isError: true
+            };
         }
       } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
         return {
           content: [{
             type: "text",
-            text: `Error: ${error instanceof Error ? error.message : String(error)}`
+            text: msg
           }],
           isError: true
         };

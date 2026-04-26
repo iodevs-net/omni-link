@@ -2,20 +2,15 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { ISemanticProvider, CallToolResult } from "../types.js";
 
-/**
- * Layer A: Serena Adapter (Resilient Version)
- * Handles MCP connection, semantic caching, and circuit-breaker logic.
- */
 export class SerenaClient implements ISemanticProvider {
   private client: Client;
   private transport: StdioClientTransport;
   private isConnected: boolean = false;
   private connectionError: string | null = null;
-  
-  // Semantic Cache to avoid redundant calls
+
   private cache: Map<string, { data: string; timestamp: number }> = new Map();
-  private readonly CACHE_TTL = 10000; 
-  
+  private readonly CACHE_TTL = 10000;
+
   private readonly DEFAULT_TIMEOUT = 3000;
 
   constructor() {
@@ -31,8 +26,8 @@ export class SerenaClient implements ISemanticProvider {
     });
 
     this.client = new Client(
-      { 
-        name: "omni-link", 
+      {
+        name: "omni-link",
         version: "1.0.0",
         description: "Universal Semantic Intelligence Bridge",
       },
@@ -42,7 +37,7 @@ export class SerenaClient implements ISemanticProvider {
 
   public async connect(): Promise<boolean> {
     if (this.isConnected) return true;
-    
+
     try {
       await this.client.connect(this.transport);
       this.isConnected = true;
@@ -61,7 +56,6 @@ export class SerenaClient implements ISemanticProvider {
       if (!ok) return false;
     }
     try {
-      // Intentamos listar las herramientas como un heartbeat ligero
       await this.client.listTools();
       return true;
     } catch (e) {
@@ -82,16 +76,20 @@ export class SerenaClient implements ISemanticProvider {
   }
 
   private sanitizePath(path: string): string {
-    // Normalizar: quitar redundancias de slashes y asegurar que no sea path traversal
     return path.replace(/\/+/g, "/").replace(/^\/|\/$/g, "");
   }
 
-  public async getSymbolsOverview(path: string, timeoutMs = this.DEFAULT_TIMEOUT): Promise<string> {
+  public async getSymbolsOverview(path: string, _timeoutMs = this.DEFAULT_TIMEOUT): Promise<string> {
     const cleanPath = this.sanitizePath(path);
-    
+
     if (!this.isConnected) {
       const ok = await this.connect();
-      if (!ok) return "🔴 [Omni-Link] Serena no disponible.";
+      if (!ok) throw new Error(
+        `SERENA_UNAVAILABLE: Cannot connect to Serena semantic engine.\n` +
+        `  Fix: Ensure 'uv' is installed (curl -LsSf https://astral.sh/uv/install.sh | sh).\n` +
+        `  Then run 'uvx --from git+https://github.com/oraios/serena serena start-mcp-server' to test.\n` +
+        `  Restart Omni-Link after installing uv.`
+      );
     }
 
     const cached = this.cache.get(cleanPath);
@@ -108,25 +106,29 @@ export class SerenaClient implements ISemanticProvider {
       ) as CallToolResult;
 
       const rawResult = (response.content?.[0] as any)?.text || "";
-      
-      const result = `### 🛡️ SEMANTIC_ARCHITECT_ADVISORY\n` +
-                    `✅ Análisis exitoso para: \`${cleanPath}\`\n\n` +
-                    `${rawResult}\n\n` +
-                    `⚠️ *Verifica las referencias cruzadas antes de refactorizar.*`;
+
+      const result = `=== Serena Symbols: ${cleanPath} ===\n${rawResult}`;
 
       this.cache.set(cleanPath, { data: result, timestamp: Date.now() });
       return result;
     } catch (error) {
-      return `❌ [Error Semántico] ${error instanceof Error ? error.message : "Desconocido"}`;
+      throw new Error(
+        `SERENA_ERROR: Semantic analysis failed for '${cleanPath}'.\n` +
+        `  Engine error: ${error instanceof Error ? error.message : "Unknown"}\n` +
+        `  Fix: Run 'get_health' tool to check Serena status, then retry.`
+      );
     }
   }
 
   public async getIncomingReferences(symbolName: string, path: string): Promise<string[]> {
     const cleanPath = this.sanitizePath(path);
-    
+
     if (!this.isConnected) {
       const ok = await this.connect();
-      if (!ok) return [];
+      if (!ok) throw new Error(
+        `SERENA_UNAVAILABLE: Cannot connect to Serena for reference search.\n` +
+        `  Fix: Install uv (curl -LsSf https://astral.sh/uv/install.sh | sh) and restart.`
+      );
     }
 
     try {
@@ -145,13 +147,11 @@ export class SerenaClient implements ISemanticProvider {
         .map((c: any) => c.text)
         .join("\n");
 
-      // Refactorización: Mejor extracción de rutas
-      // Buscamos patrones de archivos pero validamos que no empiecen con slashes dobles raros
       const matches = refs.match(/(?:^|\s)([a-zA-Z0-9._\-/]+\.(?:ts|js|py|go|rs|cpp|h))/g) || [];
       const files = [...new Set(matches.map(m => this.sanitizePath(m.trim())))] as string[];
-      
+
       return files.filter(f => f !== cleanPath && f.length > 0);
-      
+
     } catch (e) {
       return [];
     }
@@ -160,9 +160,11 @@ export class SerenaClient implements ISemanticProvider {
   public async getHealth() {
     const isAlive = await this.ping();
     return {
-      connected: this.isConnected,
+      engine: "serena",
       alive: isAlive,
-      error: this.connectionError,
+      connected: this.isConnected,
+      error: isAlive ? null : (this.connectionError || "Serena MCP server not reachable"),
+      repair: isAlive ? null : "Fix: Ensure 'uv' is installed (curl -LsSf https://astral.sh/uv/install.sh | sh). Then restart Omni-Link. Serena is auto-launched via 'uvx --from git+https://github.com/oraios/serena serena start-mcp-server'.",
       cacheEntries: this.cache.size,
       timestamp: new Date().toISOString()
     };

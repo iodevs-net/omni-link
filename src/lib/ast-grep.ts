@@ -4,17 +4,12 @@ import fs from "fs";
 import { ISemanticProvider } from "../types.js";
 
 const execPromise = promisify(exec);
-const MAX_BUFFER = 10 * 1024 * 1024; // 10MB
+const MAX_BUFFER = 10 * 1024 * 1024;
 
-/**
- * Ejecuta un comando de ast-grep y maneja los códigos de salida específicos.
- * ast-grep retorna 1 si no hay coincidencias, lo cual no es un error de ejecución.
- */
 async function runSgCommand(command: string): Promise<{ stdout: string; stderr: string }> {
   try {
     return await execPromise(command, { maxBuffer: MAX_BUFFER });
   } catch (error: any) {
-    // Si el código es 1, ast-grep simplemente no encontró coincidencias
     if (error.code === 1 && error.stdout) {
       return { stdout: error.stdout, stderr: error.stderr || "" };
     }
@@ -22,56 +17,60 @@ async function runSgCommand(command: string): Promise<{ stdout: string; stderr: 
   }
 }
 
-/**
- * Layer A.2: ast-grep Provider (Universal Engine)
- * Uses the 'sg' binary to extract structural information from multiple languages.
- */
 export class AstGrepProvider implements ISemanticProvider {
   private isAvailable: boolean = false;
 
   private binaryPath: string = "sg";
 
   public async connect(): Promise<boolean> {
-    try {
-      // Intentamos encontrar el path absoluto para mayor resiliencia
-      const { stdout: whichOut } = await execPromise("which sg").catch(() => ({ stdout: "" }));
-      if (whichOut.trim()) {
-        this.binaryPath = whichOut.trim();
-      } else {
-        // Fallback al path común de cargo si no está en el PATH actual
-        this.binaryPath = "/home/leonardo/.cargo/bin/sg";
+    if (this.isAvailable) return true;
+
+    const envPath = process.env.OMNI_LINK_SG_PATH;
+    const candidates = envPath
+      ? [envPath]
+      : ["sg", `${process.env.HOME}/.cargo/bin/sg`, `${process.env.HOME}/.local/bin/sg`];
+
+    for (const candidate of candidates) {
+      try {
+        const { stdout } = await execPromise(`"${candidate}" --version`);
+        if (stdout.includes("ast-grep") || stdout.includes("sg")) {
+          this.binaryPath = candidate;
+          this.isAvailable = true;
+          return true;
+        }
+      } catch {
+        continue;
       }
-
-      const { stdout } = await execPromise(`${this.binaryPath} --version`);
-      this.isAvailable = stdout.includes("ast-grep");
-      return this.isAvailable;
-    } catch {
-      this.isAvailable = false;
-      return false;
     }
+
+    this.isAvailable = false;
+    return false;
   }
 
-  public async disconnect(): Promise<void> {
-    // No persistent connection needed for CLI tool
-  }
+  public async disconnect(): Promise<void> {}
 
   public async getSymbolsOverview(path: string): Promise<string> {
     if (!this.isAvailable) await this.connect();
-    if (!this.isAvailable) return "🔴 [Ast-Grep] Binario no encontrado.";
+    if (!this.isAvailable) throw new Error(
+      `ASTGREP_UNAVAILABLE: ast-grep (sg) binary not found.\n` +
+      `  Fix: Install via 'cargo install ast-grep' or 'npm install -g @ast-grep/cli'.\n` +
+      `  Or set OMNI_LINK_SG_PATH env var to custom binary path.`
+    );
 
     try {
       const ext = path.split(".").pop()?.toLowerCase();
-      let pattern = 'function $NAME($$$) { $$$ }'; // Default
-      
+      let pattern;
+
       if (fs.statSync(path).isDirectory()) {
-        // Patrón universal para directorios: busca funciones, clases o definiciones comunes
-        pattern = '{ [fn|func|def|function|class] $NAME($$$) }'; 
-        // Nota: ast-grep soporta alternancia de tokens en algunos contextos, o usaremos uno más genérico:
-        pattern = '$DEF $NAME($$$)'; 
+        pattern = '$DEF $NAME($$$)';
+      } else if (ext === "py") {
+        pattern = 'def $NAME($$$): $$$';
+      } else if (ext === "go") {
+        pattern = 'func $NAME($$$) { $$$ }';
+      } else if (ext === "rs") {
+        pattern = 'fn $NAME($$$) { $$$ }';
       } else {
-        if (ext === "py") pattern = 'def $NAME($$$): $$$';
-        if (ext === "go") pattern = 'func $NAME($$$) { $$$ }';
-        if (ext === "rs") pattern = 'fn $NAME($$$) { $$$ }';
+        pattern = 'function $NAME($$$) { $$$ }';
       }
 
       const excludeGlobs = "--globs '!**/node_modules/**' --globs '!**/.git/**' --globs '!**/venv/**' --globs '!**/build/**' --globs '!**/dist/**' --globs '!**/__pycache__/**'";
@@ -80,61 +79,66 @@ export class AstGrepProvider implements ISemanticProvider {
       
       let content = "";
       if (matches.length === 0) {
-        content = "ℹ️ No se encontraron símbolos estructurales con el patrón actual.";
+        content = "(no structural symbols found with current pattern)";
       } else {
         content = matches
           .map((m: any) => {
             const name = m.metaVariables?.single?.NAME?.text || "unknown";
             const type = ext === "py" ? "def" : (ext === "rs" ? "fn" : "func");
-            return `- \`${type} ${name}\` (Línea ${m.range.start.line + 1})`;
+            return `- ${type} ${name} (line ${m.range.start.line + 1})`;
           })
           .join("\n");
       }
 
-      return `### 🛡️ SEMANTIC_ARCHITECT_ADVISORY\n` +
-             `✅ Análisis Estructural de: \`${path}\`\n\n` +
-             `${content}\n\n` +
-             `⚠️ *Confía pero verifica: Este análisis es puramente estructural.*`;
-      
+      return `=== ast-grep Symbols: ${path} ===\n${content}`;
+
     } catch (error) {
-      return `❌ [Ast-Grep Error] ${error instanceof Error ? error.message : "Desconocido"}`;
+      throw new Error(
+        `ASTGREP_ERROR: Structural analysis failed for '${path}'.\n` +
+        `  ${error instanceof Error ? error.message : "Unknown error"}\n` +
+        `  Fix: Verify file exists and ast-grep is functional via 'sg --version'.`
+      );
     }
   }
 
-  /**
-   * Busca un patrón específico en una ruta determinada (útil para escaneos cross-project).
-   */
   public async searchPatternInPath(pattern: string, name: string, searchPath: string): Promise<string[]> {
     if (!this.isAvailable) await this.connect();
-    if (!this.isAvailable) return [];
+    if (!this.isAvailable) throw new Error("ASTGREP_UNAVAILABLE: ast-grep not available for pattern search.");
 
     try {
-      // Reemplazamos $NAME en el patrón si es necesario
       const finalPattern = pattern.replace("$NAME", name);
-      // Añadimos exclusiones explícitas para evitar saturación y ruido
       const excludeGlobs = "--globs '!**/node_modules/**' --globs '!**/.git/**' --globs '!**/venv/**' --globs '!**/build/**' --globs '!**/dist/**'";
       const { stdout } = await runSgCommand(`${this.binaryPath} run -p '${finalPattern}' "${searchPath}" ${excludeGlobs} --json`);
       const matches = JSON.parse(stdout);
-      
-      // Retornamos las rutas únicas de los archivos que contienen el patrón
+
       return [...new Set(matches.map((m: any) => m.file))] as string[];
-    } catch {
-      return [];
+    } catch (error) {
+      if (error instanceof Error === false && (error as any)?.code === 1) return [];
+      throw new Error(
+        `ASTGREP_ERROR: Pattern search failed in '${searchPath}'.\n` +
+        `  ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   public async getIncomingReferences(symbolName: string, path: string): Promise<string[]> {
     if (!this.isAvailable) await this.connect();
-    if (!this.isAvailable) return [];
+    if (!this.isAvailable) throw new Error(
+      `ASTGREP_UNAVAILABLE: Cannot search references without ast-grep.\n` +
+      `  Fix: Install ast-grep (cargo install ast-grep) or set OMNI_LINK_SG_PATH.`
+    );
 
     try {
-      // Buscamos el símbolo como un identificador simple en el archivo/directorio
       const { stdout } = await runSgCommand(`${this.binaryPath} run -p '${symbolName}' "${path}" --json`);
       const matches = JSON.parse(stdout);
-      
+
       return [...new Set(matches.map((m: any) => m.file))] as string[];
-    } catch {
-      return [];
+    } catch (error) {
+      if (error instanceof Error === false && (error as any)?.code === 1) return [];
+      throw new Error(
+        `ASTGREP_ERROR: Reference search failed for '${symbolName}'.\n` +
+        `  ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -143,11 +147,9 @@ export class AstGrepProvider implements ISemanticProvider {
     if (!this.isAvailable) return [];
 
     try {
-      // Intentamos encontrar la raíz del proyecto buscando hacia arriba desde el archivo
       let currentDir = path.includes("/") ? path.substring(0, path.lastIndexOf("/")) : ".";
       let projectRoot = ".";
-      
-      // Búsqueda simple hacia arriba (hasta 3 niveles) para encontrar .omni-rules.yaml o la raíz
+
       for (let i = 0; i < 3; i++) {
         if (fs.existsSync(`${currentDir}/.omni-rules.yaml`) || fs.existsSync(`${currentDir}/package.json`)) {
           projectRoot = currentDir;
@@ -159,11 +161,8 @@ export class AstGrepProvider implements ISemanticProvider {
 
       const finalRulesPath = rules_path || `${projectRoot}/.omni-rules.yaml`;
 
-      if (!fs.existsSync(finalRulesPath)) {
-        return [];
-      }
+      if (!fs.existsSync(finalRulesPath)) return [];
 
-      // Ejecutamos el escaneo con las reglas expertas
       const { stdout } = await runSgCommand(
         `${this.binaryPath} scan -c "${finalRulesPath}" "${path}" --json`
       );
@@ -176,7 +175,7 @@ export class AstGrepProvider implements ISemanticProvider {
         file: v.file,
         range: v.range,
         lines: v.lines,
-        replacement: v.replacement || null // ast-grep incluye esto si la regla tiene un 'fix'
+        replacement: v.replacement || null
       }));
     } catch (error) {
       console.error("[Ast-Grep Fixer Error]:", error);
@@ -185,10 +184,14 @@ export class AstGrepProvider implements ISemanticProvider {
   }
 
   public async getHealth() {
+    const alive = this.isAvailable || await this.connect();
     return {
-      connected: this.isAvailable,
-      alive: this.isAvailable,
-      error: this.isAvailable ? null : "ast-grep binary not found",
+      engine: "ast-grep",
+      alive,
+      connected: alive,
+      error: alive ? null : "ast-grep (sg) binary not found in PATH or cargo bin",
+      repair: alive ? null : "Run: cargo install ast-grep --locked | or: npm install -g @ast-grep/cli | or: set OMNI_LINK_SG_PATH=<path-to-sg>",
+      binaryPath: this.binaryPath,
       cacheEntries: 0,
       timestamp: new Date().toISOString()
     };

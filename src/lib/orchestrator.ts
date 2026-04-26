@@ -4,10 +4,6 @@ import { AstGrepProvider } from "./ast-grep.js";
 import path from "path";
 import fs from "fs";
 
-/**
- * Layer A+: Semantic Orchestrator
- * Routes requests to specialized engines and manages global workspace intelligence.
- */
 export class SemanticOrchestrator implements ISemanticProvider {
   private serena: SerenaClient;
   private astGrep: AstGrepProvider;
@@ -16,9 +12,10 @@ export class SemanticOrchestrator implements ISemanticProvider {
   constructor() {
     this.serena = new SerenaClient();
     this.astGrep = new AstGrepProvider();
-    
-    // El workspaceRoot es el padre del proyecto actual (~/dev/proyectos)
-    this.workspaceRoot = path.resolve(process.cwd(), "..");
+
+    this.workspaceRoot = process.env.OMNI_LINK_WORKSPACE
+      || path.resolve(process.cwd(), "..")
+      || process.cwd();
   }
 
   public async connect(): Promise<boolean> {
@@ -38,14 +35,10 @@ export class SemanticOrchestrator implements ISemanticProvider {
 
   private getProviderForFile(filePath: string): ISemanticProvider {
     const isDir = fs.statSync(filePath).isDirectory();
-    if (isDir) {
-      return this.astGrep; // ast-grep maneja directorios de forma nativa
-    }
+    if (isDir) return this.astGrep;
 
     const ext = filePath.split(".").pop()?.toLowerCase();
-    const preferredSerena = ["ts", "tsx", "js", "jsx"];
-    
-    if (preferredSerena.includes(ext || "")) {
+    if (["ts", "tsx", "js", "jsx"].includes(ext || "")) {
       return this.serena;
     }
     return this.astGrep;
@@ -69,24 +62,19 @@ export class SemanticOrchestrator implements ISemanticProvider {
     return [];
   }
 
-  /**
-   * Fase IV: CPSI (Cross-Project Semantic Intelligence)
-   * Busca el impacto de un símbolo en todo el directorio de proyectos.
-   */
   public async getGlobalImpact(symbolName: string): Promise<Record<string, string[]>> {
     const ignoredDirs = [".git", "node_modules", "venv", ".serena", "build", "dist"];
-    
+
     const projects = fs.readdirSync(this.workspaceRoot)
       .filter(f => {
         const fullPath = path.join(this.workspaceRoot, f);
         return fs.statSync(fullPath).isDirectory() && !ignoredDirs.includes(f);
       });
-    
+
     const impact: Record<string, string[]> = {};
 
     await Promise.all(projects.map(async (project) => {
       const projectPath = path.join(this.workspaceRoot, project);
-      // Usamos ast-grep para un escaneo rápido de referencias en el proyecto vecino
       const refs = await this.astGrep.searchPatternInPath(`$NAME`, symbolName, projectPath);
       if (refs.length > 0) {
         impact[project] = refs;
