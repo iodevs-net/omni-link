@@ -1,0 +1,13 @@
+{
+  "name": "omni-link",
+  "version": "1.0.0",
+  "description": "Semantic Code Intelligence — get_spider_sense, analyze_impact, explore_call_graph for AI coding agents",
+  "author": {
+    "name": "Leonardo Vergara",
+    "email": "leonardovergaramarin@gmail.com"
+  },
+  "repository": "https://github.com/iodevs-net/omni-link",
+  "license": "MIT",
+  "keywords": ["semantic", "code-intelligence", "mcp", "ast-grep"],
+  "mcpServers": "./.mcp.json"
+}

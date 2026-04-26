@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "omni-link": {
+      "command": "npx",
+      "args": ["-y", "@iodevs/omni-link"],
+      "env": {
+        "OMNI_LINK_WORKSPACE": "${cwd}"
+      }
+    }
+  }
+}
